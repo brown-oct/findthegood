@@ -488,13 +488,13 @@
 
   function normalizeRow(r) {
     return {
-      target:        field(r, 'target', '대상', '칭찬할동료', '칭찬받는동료', 'Target'),
+      target:        field(r, 'target', '대상', '칭찬할동료', '칭찬받는동료', '칭찬받는 동료', 'Target'),
       coreValue:     field(r, 'coreValue', '핵심가치', 'CoreValue', 'core_value'),
       behavior:      field(r, 'behavior', '행동'),
       impact:        field(r, 'impact', '영향'),
       encouragement: field(r, 'encouragement', '격려', '격려메시지'),
       author:        field(r, 'author', '작성자') || '익명',
-      timestamp:     field(r, 'timestamp', '타임스탬프'),
+      timestamp:     field(r, 'timestamp', '타임스탬프', '제출시각'),
     };
   }
 
