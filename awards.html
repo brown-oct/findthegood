@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>파인더굿 시상식 2026 🏆</title>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #FFD700;
+      --gold2: #FFA500;
+      --silver: #C8C8D4;
+      --bronze: #CD7F32;
+      --bg: #080820;
+      --card-bg: rgba(255,255,255,0.04);
+      --card-border: rgba(255,255,255,0.08);
+      --text: #FFFFFF;
+      --sub: rgba(255,255,255,0.5);
+    }
+
+    body {
+      font-family: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ───── Stars ───── */
+    #starsCanvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ───── Password overlay ───── */
+    #pwOverlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, #0d0d30 0%, #080820 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      z-index: 200;
+    }
+    #pwOverlay .pw-trophy { font-size: 72px; animation: float 3s ease-in-out infinite; }
+    #pwOverlay h2 {
+      font-size: 22px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--gold), #FFF9C4, var(--gold2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+      line-height: 1.4;
+    }
+    #pwOverlay .pw-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      width: 280px;
+    }
+    #pwInput {
+      width: 100%;
+      padding: 13px 18px;
+      border-radius: 14px;
+      border: 2px solid rgba(255,215,0,0.4);
+      background: rgba(255,255,255,0.07);
+      color: white;
+      font-size: 16px;
+      font-family: inherit;
+      text-align: center;
+      outline: none;
+      letter-spacing: 0.15em;
+      transition: border-color .2s;
+    }
+    #pwInput:focus { border-color: var(--gold); }
+    #pwBtn {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      border: none;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      color: #0B0B2A;
+      font-family: inherit;
+      letter-spacing: 0.04em;
+      transition: opacity .15s, transform .1s;
+    }
+    #pwBtn:hover { opacity: .9; }
+    #pwBtn:active { transform: scale(.97); }
+    #pwError {
+      color: #FF7B7B;
+      font-size: 13px;
+      display: none;
+      animation: shake .3s ease;
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    /* ───── Main content ───── */
+    #mainContent {
+      position: relative;
+      z-index: 1;
+      padding: 48px 16px 80px;
+      display: none;
+    }
+
+    /* ───── Page header ───── */
+    .page-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    .header-trophy { font-size: 72px; display: block; animation: float 3s ease-in-out infinite; }
+    .page-header h1 {
+      font-size: clamp(26px, 5vw, 40px);
+      font-weight: 900;
+      background: linear-gradient(135deg, #FFD700 0%, #FFF9C4 50%, #FFD700 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+      margin-top: 14px;
+      line-height: 1.2;
+    }
+    .page-header .subtitle {
+      color: var(--sub);
+      margin-top: 10px;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .header-divider {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 20px auto 0;
+    }
+
+    /* ───── Section title ───── */
+    .section-title {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      color: var(--gold);
+      margin-bottom: 32px;
+    }
+
+    /* ───── Podium ───── */
+    .podium-section { max-width: 560px; margin: 0 auto 72px; }
+    .podium-wrapper {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 10px;
+    }
+    .podium-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      max-width: 170px;
+    }
+    .podium-medal { font-size: 42px; margin-bottom: 10px; }
+    .podium-medal.p1 { animation: float 2.8s ease-in-out infinite; }
+    .podium-medal.p2 { animation: float 2.8s ease-in-out infinite; animation-delay: .6s; }
+    .podium-medal.p3 { animation: float 2.8s ease-in-out infinite; animation-delay: 1.2s; }
+    .podium-name {
+      font-size: 16px;
+      font-weight: 800;
+      text-align: center;
+      line-height: 1.3;
+      margin-bottom: 5px;
+      word-break: keep-all;
+    }
+    .podium-count {
+      font-size: 12px;
+      color: var(--sub);
+      margin-bottom: 10px;
+      letter-spacing: 0.04em;
+    }
+    .podium-block {
+      width: 100%;
+      border-radius: 10px 10px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 900;
+      color: rgba(0,0,0,0.55);
+      letter-spacing: 0.06em;
+      padding-bottom: 6px;
+    }
+    .podium-item.rank-2 .podium-block {
+      height: 80px;
+      background: linear-gradient(180deg, #E8E8F0 0%, #ADADC0 100%);
+    }
+    .podium-item.rank-1 .podium-block {
+      height: 130px;
+      background: linear-gradient(180deg, #FFE566 0%, #FFB300 100%);
+      box-shadow: 0 0 32px rgba(255,200,0,0.35);
+    }
+    .podium-item.rank-3 .podium-block {
+      height: 58px;
+      background: linear-gradient(180deg, #E8B86A 0%, #A0622A 100%);
+    }
+
+    /* ───── Cards ───── */
+    .cards-section { max-width: 860px; margin: 0 auto; }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 22px 22px 18px;
+      backdrop-filter: blur(12px);
+      transition: transform .2s, box-shadow .2s, border-color .2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(255,215,0,0.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(255,215,0,0.12);
+      border-color: rgba(255,215,0,0.2);
+    }
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 10px;
+    }
+    .card-name { font-size: 20px; font-weight: 800; }
+    .card-count-badge {
+      flex-shrink: 0;
+      background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,165,0,0.15));
+      border: 1px solid rgba(255,215,0,0.3);
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 800;
+      padding: 4px 11px;
+      border-radius: 99px;
+      white-space: nowrap;
+    }
+    .cv-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .cv-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 99px;
+      letter-spacing: 0.04em;
+    }
+    .cv-데이터기반   { background: rgba(59,130,246,.25);  color: #93C5FD; border: 1px solid rgba(59,130,246,.35); }
+    .cv-실행속도     { background: rgba(249,115,22,.25);  color: #FED7AA; border: 1px solid rgba(249,115,22,.35); }
+    .cv-단순함       { background: rgba(139,92,246,.25);  color: #DDD6FE; border: 1px solid rgba(139,92,246,.35); }
+    .cv-프로의식     { background: rgba(5,150,105,.25);   color: #A7F3D0; border: 1px solid rgba(5,150,105,.35); }
+    .cv-다양성존중   { background: rgba(8,145,178,.25);   color: #A5F3FC; border: 1px solid rgba(8,145,178,.35); }
+    .cv-other        { background: rgba(255,255,255,.1);  color: rgba(255,255,255,.7); border: 1px solid rgba(255,255,255,.15); }
+
+    .entries-list { display: flex; flex-direction: column; gap: 10px; }
+    .entry-item {
+      border-left: 2px solid rgba(255,255,255,0.1);
+      padding-left: 12px;
+    }
+    .entry-text {
+      font-size: 13px;
+      color: rgba(255,255,255,0.8);
+      line-height: 1.6;
+    }
+    .entry-encouragement {
+      font-size: 12px;
+      color: #FFE08A;
+      font-style: italic;
+      margin-top: 5px;
+      line-height: 1.5;
+    }
+    .entry-meta {
+      font-size: 11px;
+      color: var(--sub);
+      margin-top: 4px;
+    }
+    .more-entries {
+      font-size: 12px;
+      color: var(--sub);
+      margin-top: 8px;
+      padding-left: 14px;
+    }
+
+    /* ───── Loading / Error ───── */
+    .state-box {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--sub);
+    }
+    .state-box .icon { font-size: 48px; display: block; margin-bottom: 16px; }
+    .state-box p { font-size: 15px; line-height: 1.8; }
+    .state-box code {
+      background: rgba(255,255,255,0.08);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .spin { animation: spin 1.2s linear infinite; display: inline-block; }
+
+    /* ───── Confetti pieces ───── */
+    .confetti-piece {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      pointer-events: none;
+      z-index: 150;
+      animation: confetti-fall var(--dur) linear forwards;
+    }
+    @keyframes confetti-fall {
+      0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* ───── Animations ───── */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-10px); }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ───── Responsive ───── */
+    @media (max-width: 600px) {
+      .cards-grid { grid-template-columns: 1fr; }
+      .podium-name { font-size: 14px; }
+      .podium-medal { font-size: 34px; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="starsCanvas"></canvas>
+
+<!-- ── Password overlay ── -->
+<div id="pwOverlay">
+  <div class="pw-trophy">🏆</div>
+  <h2>파인더굿 시상식 2026<br>관리자 전용</h2>
+  <div class="pw-box">
+    <input type="password" id="pwInput" placeholder="비밀번호 입력" autocomplete="off" />
+    <div id="pwError">비밀번호가 올바르지 않아요 🙈</div>
+    <button id="pwBtn" onclick="checkPw()">입장하기 ✨</button>
+  </div>
+</div>
+
+<!-- ── Main ── -->
+<div id="mainContent">
+  <div class="page-header">
+    <span class="header-trophy">🏆</span>
+    <h1>파인더굿 시상식 2026</h1>
+    <p class="subtitle">동료들이 서로에게 보내준 소중한 칭찬을 모았어요.<br>오늘, 우리 팀의 Good을 함께 나눠요 ✨</p>
+    <div class="header-divider"></div>
+  </div>
+
+  <div id="contentArea">
+    <div class="state-box">
+      <span class="icon spin">⭐</span>
+      <p>칭찬 데이터를 불러오는 중...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ╔══════════════════════════════╗
+  // ║         CONFIG               ║
+  // ╚══════════════════════════════╝
+  const AWARDS_PASSWORD = 'FTG2026'; // 시상 페이지 비밀번호 (변경 가능)
+  // findthegood.html 과 동일한 GAS URL (doGet 추가 후 재배포 필요)
+  const SCRIPT_URL = 'https://script.google.com/a/macros/findthegap.co.kr/s/AKfycbyN0cSAlVkRyArDuNOhZ8m-wlEvRfDxmlzoxsXhRyy56oznZNRJ6sYtOGil2MYIkmAp/exec';
+
+  // ── Stars ──────────────────────────────────────────────
+  const canvas = document.getElementById('starsCanvas');
+  const ctx = canvas.getContext('2d');
+  const stars = [];
+
+  function initStars() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    stars.length = 0;
+    for (let i = 0; i < 180; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.4 + 0.3,
+        phase: Math.random() * Math.PI * 2,
+        speed: Math.random() * 0.018 + 0.006,
+      });
+    }
+  }
+
+  let animFrame;
+  function drawStars() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    stars.forEach(s => {
+      s.phase += s.speed;
+      const a = (Math.sin(s.phase) + 1) / 2;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${a * 0.85})`;
+      ctx.fill();
+    });
+    animFrame = requestAnimationFrame(drawStars);
+  }
+
+  initStars();
+  drawStars();
+  window.addEventListener('resize', initStars);
+
+  // ── Password ────────────────────────────────────────────
+  document.getElementById('pwInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') checkPw();
+  });
+
+  function checkPw() {
+    if (document.getElementById('pwInput').value === AWARDS_PASSWORD) {
+      document.getElementById('pwOverlay').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+      launchConfetti();
+      loadData();
+    } else {
+      const err = document.getElementById('pwError');
+      err.style.display = 'block';
+      document.getElementById('pwInput').value = '';
+      document.getElementById('pwInput').focus();
+      setTimeout(() => { err.style.display = 'none'; }, 2500);
+    }
+  }
+
+  // ── Confetti ────────────────────────────────────────────
+  const CONFETTI_COLORS = ['#FFD700','#FF6B9D','#7C3AED','#00D2FF','#FF9A3C','#A8FF78'];
+  function launchConfetti() {
+    for (let i = 0; i < 60; i++) {
+      setTimeout(() => {
+        const el = document.createElement('div');
+        el.className = 'confetti-piece';
+        el.style.cssText = `
+          left:${Math.random()*100}vw;
+          background:${CONFETTI_COLORS[Math.floor(Math.random()*CONFETTI_COLORS.length)]};
+          --dur:${2.5 + Math.random()*2}s;
+          border-radius:${Math.random() > .5 ? '50%' : '2px'};
+        `;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 5000);
+      }, i * 40);
+    }
+  }
+
+  // ── Field normalizer ─────────────────────────────────────
+  function field(row, ...keys) {
+    for (const k of keys) if (row[k]) return row[k];
+    return '';
+  }
+
+  function normalizeRow(r) {
+    return {
+      target:        field(r, 'target', '대상', '칭찬할동료', '칭찬받는동료', 'Target'),
+      coreValue:     field(r, 'coreValue', '핵심가치', 'CoreValue', 'core_value'),
+      behavior:      field(r, 'behavior', '행동'),
+      impact:        field(r, 'impact', '영향'),
+      encouragement: field(r, 'encouragement', '격려', '격려메시지'),
+      author:        field(r, 'author', '작성자') || '익명',
+      timestamp:     field(r, 'timestamp', '타임스탬프'),
+    };
+  }
+
+  // ── Data loading (JSONP — 구글 워크스페이스 인증 세션 활용) ──
+  function loadData() {
+    const timeout = setTimeout(() => {
+      document.getElementById('contentArea').innerHTML = `
+        <div class="state-box">
+          <span class="icon">⚠️</span>
+          <p>데이터 로딩 시간이 초과됐어요.<br><br>
+          구글 계정 로그인 상태를 확인하고<br>GAS에 <code>doGet</code> 함수가 추가·배포됐는지 확인해 주세요.</p>
+        </div>`;
+    }, 10000);
+
+    window.ftgDataCallback = function(result) {
+      clearTimeout(timeout);
+      const rows = (result.data || []).map(normalizeRow).filter(r => r.target);
+      if (rows.length === 0) {
+        document.getElementById('contentArea').innerHTML = `
+          <div class="state-box"><span class="icon">🌱</span><p>아직 칭찬 데이터가 없어요.</p></div>`;
+        return;
+      }
+      renderAwards(rows);
+    };
+
+    const script = document.createElement('script');
+    script.src = SCRIPT_URL + '?callback=ftgDataCallback';
+    script.onerror = () => {
+      clearTimeout(timeout);
+      document.getElementById('contentArea').innerHTML = `
+        <div class="state-box">
+          <span class="icon">⚠️</span>
+          <p>데이터를 불러오지 못했어요.<br><br>
+          구글 계정에 로그인된 상태인지 확인하고<br>GAS <code>doGet</code> 함수가 배포됐는지 확인해 주세요.</p>
+        </div>`;
+    };
+    document.head.appendChild(script);
+  }
+
+  // ── XSS guard ────────────────────────────────────────────
+  function esc(s) {
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Render ───────────────────────────────────────────────
+  function renderAwards(rows) {
+    // Group by target → sort by count desc
+    const map = {};
+    rows.forEach(r => {
+      const k = r.target;
+      if (!map[k]) map[k] = [];
+      map[k].push(r);
+    });
+    const ranked = Object.entries(map)
+      .map(([name, entries]) => ({ name, entries, count: entries.length }))
+      .sort((a, b) => b.count - a.count);
+
+    const html = [];
+
+    // ── Podium ──
+    const top = ranked.slice(0, 3);
+    if (top.length) {
+      // Layout order: 2nd (left) · 1st (center) · 3rd (right)
+      const order =
+        top.length === 1 ? [top[0]] :
+        top.length === 2 ? [top[1], top[0]] :
+        [top[1], top[0], top[2]];
+      const rankOf = p => ranked.indexOf(p) + 1;
+      const medals = ['', '🥇', '🥈', '🥉'];
+      const rankClass = { 1: 'rank-1', 2: 'rank-2', 3: 'rank-3' };
+      const medalClass = { 1: 'p1', 2: 'p2', 3: 'p3' };
+
+      html.push(`<div class="podium-section"><p class="section-title">✨ 명예의 전당 ✨</p><div class="podium-wrapper">`);
+      order.forEach(p => {
+        const rank = rankOf(p);
+        html.push(`
+          <div class="podium-item ${rankClass[rank]}">
+            <div class="podium-medal ${medalClass[rank]}">${medals[rank]}</div>
+            <div class="podium-name">${esc(p.name)}</div>
+            <div class="podium-count">★ ${p.count}회 칭찬</div>
+            <div class="podium-block">${rank}위</div>
+          </div>`);
+      });
+      html.push(`</div></div>`);
+    }
+
+    // ── Cards ──
+    html.push(`<div class="cards-section"><p class="section-title">💌 전체 칭찬 모아보기</p><div class="cards-grid">`);
+
+    ranked.forEach(({ name, entries, count }) => {
+      const cvSet = [...new Set(entries.map(e => e.coreValue).filter(Boolean))];
+      const cvBadges = cvSet.map(cv => {
+        const cls = 'cv-' + cv.replace(/\s/g, '') || 'cv-other';
+        return `<span class="cv-badge ${esc(cls)}">${esc(cv)}</span>`;
+      }).join('');
+
+      const shown = entries.slice(0, 2);
+      const entryItems = shown.map(e => {
+        const text = [e.behavior, e.impact].filter(Boolean).join(' · ');
+        const enc = e.encouragement
+          ? `<div class="entry-encouragement">💬 "${esc(e.encouragement)}"</div>` : '';
+        const meta = e.author && e.author !== '익명'
+          ? `<div class="entry-meta">— ${esc(e.author)}</div>` : '';
+        return `<div class="entry-item">
+          <div class="entry-text">${esc(text)}</div>${enc}${meta}
+        </div>`;
+      }).join('');
+
+      const more = count > 2
+        ? `<div class="more-entries">+${count - 2}건의 칭찬이 더 있어요</div>` : '';
+
+      html.push(`
+        <div class="card">
+          <div class="card-header">
+            <div class="card-name">${esc(name)}</div>
+            <div class="card-count-badge">★ ${count}회</div>
+          </div>
+          ${cvBadges ? `<div class="cv-row">${cvBadges}</div>` : ''}
+          <div class="entries-list">${entryItems}</div>
+          ${more}
+        </div>`);
+    });
+
+    html.push(`</div></div>`);
+    document.getElementById('contentArea').innerHTML = html.join('');
+  }
+</script>
+
+</body>
+</html>
