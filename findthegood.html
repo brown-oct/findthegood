@@ -415,8 +415,10 @@
 
     const required = ['target', 'situation', 'behavior', 'impact', 'coreValue'];
 
-    // 페이지 로드 시 제출 횟수 확인
-    if (getSubmitCount() >= MAX_SUBMISSIONS) {
+    const isAdmin = new URLSearchParams(location.search).get('admin') === '1';
+
+    // 페이지 로드 시 제출 횟수 확인 (admin 모드는 제한 없음)
+    if (!isAdmin && getSubmitCount() >= MAX_SUBMISSIONS) {
       form.style.display = 'none';
       stepDots.style.display = 'none';
       limitScreen.style.display = 'flex';
@@ -494,8 +496,8 @@
     }
 
     function resetForm() {
-      // 제출 한도 도달 시 limit 화면으로 전환
-      if (getSubmitCount() >= MAX_SUBMISSIONS) {
+      // 제출 한도 도달 시 limit 화면으로 전환 (admin 모드는 무제한)
+      if (!isAdmin && getSubmitCount() >= MAX_SUBMISSIONS) {
         successScreen.style.display = 'none';
         form.style.display = 'none';
         stepDots.style.display = 'none';
