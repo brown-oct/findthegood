@@ -361,6 +361,143 @@
       .podium-name { font-size: 14px; }
       .podium-medal { font-size: 34px; }
     }
+
+    /* ───── Card clickable ───── */
+    .card {
+      cursor: pointer;
+    }
+    .card:hover {
+      transform: translateY(-5px) scale(1.01);
+      box-shadow: 0 16px 48px rgba(255,215,0,0.2);
+      border-color: rgba(255,215,0,0.35);
+    }
+    .card:active { transform: scale(.98); }
+
+    /* ───── Person Modal ───── */
+    #personModal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+      padding: 20px;
+    }
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      cursor: pointer;
+    }
+    .modal-box {
+      position: relative;
+      background: rgba(12,12,38,0.97);
+      border: 1px solid rgba(255,215,0,0.28);
+      border-radius: 24px;
+      padding: 36px 36px 32px;
+      max-width: 700px;
+      width: 100%;
+      max-height: 84vh;
+      overflow-y: auto;
+      backdrop-filter: blur(24px);
+      box-shadow: 0 0 80px rgba(255,215,0,0.14), 0 28px 72px rgba(0,0,0,0.75);
+    }
+    .modal-box::-webkit-scrollbar { width: 4px; }
+    .modal-box::-webkit-scrollbar-track { background: transparent; }
+    .modal-box::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.2); border-radius: 2px; }
+    .modal-close {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--sub);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .15s, color .15s;
+      font-family: inherit;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.15); color: white; }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+      padding-right: 46px;
+      flex-wrap: wrap;
+    }
+    .modal-name {
+      font-size: 30px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #FFD700 0%, #FFF9C4 60%, #FFD700 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+    }
+    .modal-count-badge {
+      flex-shrink: 0;
+      background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,165,0,0.15));
+      border: 1px solid rgba(255,215,0,0.35);
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 800;
+      padding: 5px 14px;
+      border-radius: 99px;
+    }
+    .modal-cv-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-bottom: 20px;
+    }
+    .modal-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.07);
+      margin-bottom: 22px;
+    }
+    .modal-entries { display: flex; flex-direction: column; gap: 14px; }
+    .modal-entry-item {
+      border-left: 3px solid rgba(255,215,0,0.35);
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 0 12px 12px 0;
+    }
+    .modal-entry-num {
+      font-size: 11px;
+      color: rgba(255,215,0,0.55);
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      margin-bottom: 7px;
+      text-transform: uppercase;
+    }
+    .modal-entry-text {
+      font-size: 15px;
+      color: rgba(255,255,255,0.9);
+      line-height: 1.75;
+    }
+    .modal-entry-encouragement {
+      font-size: 14px;
+      color: #FFE08A;
+      font-style: italic;
+      margin-top: 9px;
+      line-height: 1.6;
+    }
+    .modal-entry-meta {
+      font-size: 12px;
+      color: var(--sub);
+      margin-top: 7px;
+    }
+    @media (max-width: 600px) {
+      .modal-box { padding: 28px 20px 24px; border-radius: 18px; }
+      .modal-name { font-size: 24px; }
+    }
   </style>
 </head>
 <body>
@@ -392,6 +529,21 @@
       <span class="icon spin">⭐</span>
       <p>칭찬 데이터를 불러오는 중...</p>
     </div>
+  </div>
+</div>
+
+<!-- ── Person Detail Modal ── -->
+<div id="personModal">
+  <div class="modal-backdrop" onclick="closePersonModal()"></div>
+  <div class="modal-box">
+    <button class="modal-close" onclick="closePersonModal()">✕</button>
+    <div class="modal-header">
+      <span class="modal-name" id="modalName"></span>
+      <span class="modal-count-badge" id="modalCount"></span>
+    </div>
+    <div class="modal-cv-row" id="modalCvRow"></div>
+    <div class="modal-divider"></div>
+    <div class="modal-entries" id="modalEntries"></div>
   </div>
 </div>
 
@@ -542,6 +694,8 @@
   }
 
   // ── Render ───────────────────────────────────────────────
+  let ranked = [];
+
   function renderAwards(rows) {
     // Group by target → sort by count desc
     const map = {};
@@ -550,7 +704,7 @@
       if (!map[k]) map[k] = [];
       map[k].push(r);
     });
-    const ranked = Object.entries(map)
+    ranked = Object.entries(map)
       .map(([name, entries]) => ({ name, entries, count: entries.length }))
       .sort((a, b) => b.count - a.count);
 
@@ -609,7 +763,7 @@
         ? `<div class="more-entries">+${count - 2}건의 칭찬이 더 있어요</div>` : '';
 
       html.push(`
-        <div class="card">
+        <div class="card" data-name="${esc(name)}" onclick="openPersonModal(this.dataset.name)">
           <div class="card-header">
             <div class="card-name">${esc(name)}</div>
             <div class="card-count-badge">★ ${count}회</div>
@@ -623,6 +777,47 @@
     html.push(`</div></div>`);
     document.getElementById('contentArea').innerHTML = html.join('');
   }
+
+  // ── Person Modal ─────────────────────────────────────────
+  function openPersonModal(name) {
+    const person = ranked.find(p => p.name === name);
+    if (!person) return;
+
+    document.getElementById('modalName').textContent = person.name;
+    document.getElementById('modalCount').textContent = `★ ${person.count}회`;
+
+    const cvSet = [...new Set(person.entries.map(e => e.coreValue).filter(Boolean))];
+    document.getElementById('modalCvRow').innerHTML = cvSet.map(cv => {
+      const cls = 'cv-' + cv.replace(/\s/g, '');
+      return `<span class="cv-badge ${esc(cls)}">${esc(cv)}</span>`;
+    }).join('');
+
+    document.getElementById('modalEntries').innerHTML = person.entries.map((e, i) => {
+      const text = [e.behavior, e.impact].filter(Boolean).join(' · ');
+      const enc = e.encouragement
+        ? `<div class="modal-entry-encouragement">💬 "${esc(e.encouragement)}"</div>` : '';
+      const meta = e.author && e.author !== '익명'
+        ? `<div class="modal-entry-meta">— ${esc(e.author)}</div>` : '';
+      return `<div class="modal-entry-item">
+        <div class="modal-entry-num">칭찬 ${i + 1}</div>
+        <div class="modal-entry-text">${esc(text)}</div>${enc}${meta}
+      </div>`;
+    }).join('');
+
+    const modal = document.getElementById('personModal');
+    modal.style.display = 'flex';
+    modal.querySelector('.modal-box').scrollTop = 0;
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closePersonModal() {
+    document.getElementById('personModal').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closePersonModal();
+  });
 </script>
 
 </body>
