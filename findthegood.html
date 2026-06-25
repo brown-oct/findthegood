@@ -203,32 +203,6 @@
     }
     .btn-again:hover { background: var(--brand-mid); }
 
-    /* Core value chips */
-    .chip-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 4px;
-    }
-    .chip {
-      padding: 7px 14px;
-      border-radius: 99px;
-      border: 1.5px solid var(--border);
-      background: #fff;
-      font-family: inherit;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--sub);
-      cursor: pointer;
-      transition: border-color .15s, background .15s, color .15s;
-    }
-    .chip:hover { border-color: var(--brand); color: var(--brand); }
-    .chip.selected {
-      border-color: var(--brand);
-      background: var(--brand-light);
-      color: var(--brand);
-      font-weight: 700;
-    }
 
     /* Error msg */
     .error-msg {
@@ -284,48 +258,20 @@
           <span class="field-tag">상황</span>
           <label for="situation">언제, 어떤 상황이었나요?</label>
         </div>
-        <p class="hint">지난 주 회의에서 / OO 프로젝트 마감을 앞두고</p>
+        <p class="hint">소소한 도움 / 업무적으로 힘이 됐을 때 / 막혔을 때 도와준 순간</p>
         <textarea id="situation" name="situation" placeholder="상황을 간단히 설명해 주세요."></textarea>
         <div class="error-msg" id="err-situation">상황을 입력해 주세요.</div>
-      </div>
-
-      <!-- 행동 -->
-      <div class="field">
-        <div class="field-header">
-          <span class="field-tag">행동</span>
-          <label for="behavior">구체적으로 어떤 행동을 했나요?</label>
-        </div>
-        <p class="hint">ex) 모두가 놓쳤던 일정 충돌을 먼저 발견하고 조정안을 공유해 줬어요.</p>
-        <textarea id="behavior" name="behavior" placeholder="그 동료가 한 행동을 구체적으로 적어주세요."></textarea>
-        <div class="error-msg" id="err-behavior">행동을 입력해 주세요.</div>
       </div>
 
       <!-- 영향 -->
       <div class="field">
         <div class="field-header">
           <span class="field-tag">영향</span>
-          <label for="impact">팀이나 프로젝트에 어떤 도움이 됐나요?</label>
+          <label for="impact">나에게 어떤 도움이 됐나요?</label>
         </div>
         <p class="hint">ex) 덕분에 다음 단계로 막힘 없이 넘어갈 수 있었어요.</p>
         <textarea id="impact" name="impact" placeholder="그 행동의 영향을 알려주세요."></textarea>
         <div class="error-msg" id="err-impact">영향을 입력해 주세요.</div>
-      </div>
-
-      <!-- 핵심가치 -->
-      <div class="field">
-        <div class="field-header">
-          <span class="field-tag">필수</span>
-          <label>[CORE] 파인더갭 핵심가치 5가지 중 어떤 것에 해당되나요?</label>
-        </div>
-        <div class="chip-group" id="chipGroup">
-          <button type="button" class="chip" data-value="데이터기반">데이터기반</button>
-          <button type="button" class="chip" data-value="실행속도">실행속도</button>
-          <button type="button" class="chip" data-value="단순함">단순함</button>
-          <button type="button" class="chip" data-value="프로의식">프로의식</button>
-          <button type="button" class="chip" data-value="다양성 존중">다양성 존중</button>
-        </div>
-        <input type="hidden" id="coreValue" name="coreValue" />
-        <div class="error-msg" id="err-coreValue">핵심가치를 선택해 주세요.</div>
       </div>
 
       <hr class="divider" />
@@ -344,9 +290,9 @@
       <div class="field">
         <div class="field-header">
           <span class="field-tag optional">선택</span>
-          <label for="encouragement">앞으로도 기대하는 점이 있다면?</label>
+          <label for="encouragement">응원 한마디 남겨주세요</label>
         </div>
-        <p class="hint">ex) 이런 선제적인 움직임이 우리 팀의 힘이에요. 앞으로도 기대할게요!</p>
+        <p class="hint">ex) 항상 믿음직스러워요. 앞으로도 함께해서 든든해요!</p>
         <textarea id="encouragement" name="encouragement" placeholder="이 동료에게 한 마디 응원을 남겨주세요."></textarea>
       </div>
 
@@ -413,7 +359,7 @@
     const submitBtn = document.getElementById('submitBtn');
     const stepDots = document.getElementById('stepDots');
 
-    const required = ['target', 'situation', 'behavior', 'impact', 'coreValue'];
+    const required = ['target', 'situation', 'impact'];
 
     const isAdmin = new URLSearchParams(location.search).get('admin') === '1';
 
@@ -424,17 +370,7 @@
       limitScreen.style.display = 'flex';
     }
 
-    document.getElementById('chipGroup').addEventListener('click', (e) => {
-      const chip = e.target.closest('.chip');
-      if (!chip) return;
-      document.querySelectorAll('#chipGroup .chip').forEach(c => c.classList.remove('selected'));
-      chip.classList.add('selected');
-      document.getElementById('coreValue').value = chip.dataset.value;
-      document.getElementById('err-coreValue').style.display = 'none';
-      document.getElementById('coreValue').style.borderColor = '';
-    });
-
-    function validate() {
+function validate() {
       let valid = true;
       required.forEach(id => {
         const el = document.getElementById(id);
@@ -462,9 +398,7 @@
         timestamp:    new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
         target:       document.getElementById('target').value.trim(),
         situation:    document.getElementById('situation').value.trim(),
-        behavior:     document.getElementById('behavior').value.trim(),
         impact:       document.getElementById('impact').value.trim(),
-        coreValue:    document.getElementById('coreValue').value,
         emotion:      document.getElementById('emotion').value.trim(),
         encouragement:document.getElementById('encouragement').value.trim(),
         author:       document.getElementById('author').value.trim() || '익명',
@@ -505,7 +439,6 @@
         return;
       }
       form.reset();
-      document.querySelectorAll('#chipGroup .chip').forEach(c => c.classList.remove('selected'));
       required.forEach(id => {
         document.getElementById('err-' + id).style.display = 'none';
         document.getElementById(id).style.borderColor = '';
